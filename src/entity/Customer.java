@@ -2,6 +2,7 @@ package entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 public class Customer implements Serializable {
 
@@ -11,18 +12,22 @@ public class Customer implements Serializable {
 	private String address;
 	private String contact;
 	private Date birthDate;
-
+	private Cart cart;
+	
 	public Customer() {
-
+		
 	}
+	
 
-	public Customer(Integer customerId, String customerName, String address, String contact, Date birthDate) {
+	public Customer(Integer customerId, String customerName, String address, String contact, Date birthDate,
+			Cart cart) {
 		super();
 		this.customerId = customerId;
 		this.customerName = customerName;
 		this.address = address;
 		this.contact = contact;
 		this.birthDate = birthDate;
+		this.cart = cart;
 	}
 
 	public Integer getCustomerId() {
@@ -63,6 +68,14 @@ public class Customer implements Serializable {
 
 	public void setBirthDate(Date birthDate) {
 		this.birthDate = birthDate;
+	}	
+	
+	public Cart getCart() {
+		return cart;
+	}
+
+	public void setCart(Cart cart) {
+		this.cart = cart;
 	}
 
 	public static long getSerialversionuid() {
@@ -71,9 +84,27 @@ public class Customer implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Custumer [customerId=" + customerId + ", customerName=" + customerName + ", address=" + address
-				+ ", contact=" + contact + ", birthDate=" + birthDate + "]";
+		return "Customer [customerId=" + customerId + ", customerName=" + customerName + ", address=" + address
+				+ ", contact=" + contact + ", birthDate=" + birthDate + ", cart=" + cart + "]";
 	}
 
-	
+	@Override
+	public int hashCode() {
+		return Objects.hash(address, birthDate, cart, contact, customerId, customerName);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Customer other = (Customer) obj;
+		return Objects.equals(address, other.address) && Objects.equals(birthDate, other.birthDate)
+				&& Objects.equals(cart, other.cart) && Objects.equals(contact, other.contact)
+				&& Objects.equals(customerId, other.customerId) && Objects.equals(customerName, other.customerName);
+	}
+
 }
