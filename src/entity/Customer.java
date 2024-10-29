@@ -3,7 +3,7 @@ package entity;
 import java.io.Serializable;
 import java.util.Date;
 
-public class Custumer implements Serializable {
+public class Customer implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private Integer customerId;
@@ -12,11 +12,11 @@ public class Custumer implements Serializable {
 	private String contact;
 	private Date birthDate;
 
-	public Custumer() {
+	public Customer() {
 
 	}
 
-	public Custumer(Integer customerId, String customerName, String address, String contact, Date birthDate) {
+	public Customer(Integer customerId, String customerName, String address, String contact, Date birthDate) {
 		super();
 		this.customerId = customerId;
 		this.customerName = customerName;

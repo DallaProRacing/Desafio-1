@@ -8,7 +8,7 @@ import Conection.DB;
 import entity.Cart;
 import entity.CartItems;
 import entity.Category;
-import entity.Custumer;
+import entity.Customer;
 import entity.Inventory;
 import entity.Product;
 import entity.Sale;
@@ -33,7 +33,7 @@ public class Program {
 
 		// Testando a classe Customer
 
-		Custumer customer1 = new Custumer(1, "John Doe", "123 Main St", "555-1234",
+		Customer customer1 = new Customer(1, "John Doe", "123 Main St", "555-1234",
 				java.sql.Date.valueOf("1990-01-01"));
 		System.out.println("Customer: " + customer1);
 
