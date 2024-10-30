@@ -1,15 +1,13 @@
 package application;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 
 import Conection.DB;
 import entity.Cart;
 import entity.Customer;
-import entity.Sale;
-import implementation.SaleDaoJDBC;
+import implementation.CartDaoJDBC;
+import model.CartDao;
 
 public class Program {
 
@@ -18,58 +16,33 @@ public class Program {
 		Connection conn = null;
 
 		conn = DB.getConnection();
-		try {
-			conn = DB.getConnection();
-			SaleDaoJDBC saleDao = new SaleDaoJDBC(conn);
+		conn = DB.getConnection();
 
-			Cart cart = new Cart();
-			cart.setCartId(1); // Defina o ID do carrinho que já existe no banco
-			cart.setTotalValue(0.0); // Total inicial
+		CartDao cartDao = new CartDaoJDBC(conn);
 
-			Customer customer = new Customer();
-			customer.setCustomerId(1); // Defina o ID do cliente que já existe no banco
+		// Teste de inserção
+		Customer customer = new Customer();
+		customer.setCustomerId(1); // Altere para um Customer existente
 
-			// Inserir uma nova venda
-			Sale newSale = new Sale();
-			newSale.setCart(cart);
-			newSale.setCustomer(customer); // Definindo o cliente corretamente
-			newSale.setProductPrice(49.99);
-			newSale.setDiscount(5.00);
-			newSale.setSaleValue(44.99); // Valor após desconto
-			saleDao.insert(newSale); // Isso deve funcionar agora
-			System.out.println("Inserted new Sale.");
+		Cart newCart = new Cart();
+		newCart.setCustomer(customer);
+		newCart.setTotalValue(100.50); // Exemplo de valor total
 
-			// Encontrar todas as vendas
-			List<Sale> allSales = saleDao.findAll();
-			System.out.println("All Sales:");
-			for (Sale sale : allSales) {
-				System.out.println(sale.getSaleId() + ": Price: " + sale.getProductPrice() + ", Discount: "
-						+ sale.getDiscount() + ", Total: " + sale.getSaleValue());
-			}
+		cartDao.insert(newCart);
+		System.out.println("Cart inserido com ID: " + newCart.getCartId());
 
-			// Atualizar uma venda
-			if (!allSales.isEmpty()) {
-				Sale saleToUpdate = allSales.get(0);
-				saleToUpdate.setProductPrice(39.99); // Altera o preço
-				saleDao.update(saleToUpdate);
-				System.out.println("Updated Sale with ID: " + saleToUpdate.getSaleId());
-			}
+		// Teste de busca
+		Cart foundCart = cartDao.findById(newCart.getCartId());
+		System.out.println("Cart encontrado: ID = " + foundCart.getCartId() + ", Total Value = " + foundCart.getTotalValue());
 
-			// Encontrar uma venda por ID
-			if (!allSales.isEmpty()) {
-				Sale foundSale = saleDao.findById(allSales.get(0).getSaleId());
-				System.out.println("Found Sale: " + foundSale.getSaleId() + " - Price: " + foundSale.getProductPrice()
-						+ ", Total: " + foundSale.getSaleValue());
-			}
+		// Teste de atualização
+		foundCart.setTotalValue(150.75); // Alterar o valor total
+		cartDao.update(foundCart);
+		System.out.println("Cart atualizado: ID = " + foundCart.getCartId() + ", Novo Total Value = " + foundCart.getTotalValue());
 
-			// Deletar uma venda
-			if (!allSales.isEmpty()) {
-				Sale saleToDelete = allSales.get(0);
-				saleDao.deleteById(saleToDelete.getSaleId());
-				System.out.println("Deleted Sale with ID: " + saleToDelete.getSaleId());
-			}
-		}finally {
-			DB.closeConnection();
-		}
+		// Teste de exclusão
+		cartDao.deleteById(foundCart.getCartId());
+		System.out.println("Cart excluído com ID: " + foundCart.getCartId());
 	}
 }
+
