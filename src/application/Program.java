@@ -1,61 +1,71 @@
 package application;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 
 import Conection.DB;
-import Conection.DbException;
-import entity.Customer;
-import implementation.CustomerDaoJBDC;
+import entity.Cart;
+import entity.CartItems;
+import entity.Product;
+import implementation.CartItemsDaoJDBC;
 
 public class Program {
-
-	public static void main(String[] args) {
-		Connection conn = null;
-        try {
-            conn = DB.getConnection(); 
-            CustomerDaoJBDC customerDao = new CustomerDaoJBDC(conn);
-
-           
-            System.out.println("=== Inserir Novo Cliente ===");
-            Customer newCustomer = new Customer();
-            newCustomer.setCustomerName("João Silva");
-            newCustomer.setAddress("Rua das Flores, 123");
-            newCustomer.setContact("123456789");
-            newCustomer.setBirthDate(java.sql.Date.valueOf("1990-01-01")); 
-            customerDao.insert(newCustomer);
-            System.out.println("Cliente inserido com ID: " + newCustomer.getCustomerId());
-
-          
-            System.out.println("=== Atualizar Cliente ===");
-            newCustomer.setCustomerName("João Silva Atualizado");
-            customerDao.update(newCustomer);
-            System.out.println("Cliente atualizado.");
-
-            
-            System.out.println("=== Encontrar Cliente pelo ID ===");
-            Customer foundCustomer = customerDao.findById(newCustomer.getCustomerId());
-            if (foundCustomer != null) {
-                System.out.println("Cliente encontrado: " + foundCustomer.getCustomerName());
-            } else {
-                System.out.println("Cliente não encontrado.");
-            }
-
-           
-            System.out.println("=== Listar Todos os Clientes ===");
-            List<Customer> allCustomers = customerDao.findAll();
-            for (Customer customer : allCustomers) {
-                System.out.println("Cliente ID: " + customer.getCustomerId() + ", Nome: " + customer.getCustomerName());
-            }
-
-            System.out.println("=== Excluir Cliente pelo ID ===");
-            customerDao.deleteById(newCustomer.getCustomerId());
-            System.out.println("Cliente excluído.");
-            
-        } catch (DbException e) {
-            System.out.println("Erro: " + e.getMessage());
+	
+    public static void main(String[] args) {
         
-        }
+    	Connection conn = null;
+
+        conn = DB.getConnection();
+		CartItemsDaoJDBC cartItemsDao = new CartItemsDaoJDBC(conn);
+		
+		// Criar um novo produto e um novo carrinho para o teste
+		Product product = new Product();
+		product.setProductId(1); // Defina o ID do produto que já existe no banco
+		product.setProductName("Test Product");
+
+		Cart cart = new Cart();
+		cart.setCartId(1); // Defina o ID do carrinho que já existe no banco
+		cart.setTotalValue(0.0); // Total inicial
+
+		// Inserir um novo CartItem
+		CartItems newCartItem = new CartItems();
+		newCartItem.setCart(cart);
+		newCartItem.setProduct(product);
+		newCartItem.setProductQuantity(2);
+		newCartItem.setProductPrice(19.99);
+		cartItemsDao.insert(newCartItem);
+		System.out.println("Inserted new CartItem.");
+
+		// Encontrar todos os CartItems
+		List<CartItems> allCartItems = cartItemsDao.findAll();
+		System.out.println("All CartItems:");
+		for (CartItems item : allCartItems) {
+		    System.out.println(item.getCartItemId() + ": " + item.getProduct().getProductName() +
+		                       " - Quantity: " + item.getProductQuantity());
+		}
+
+		// Atualizar um CartItem
+		if (!allCartItems.isEmpty()) {
+		    CartItems itemToUpdate = allCartItems.get(0);
+		    itemToUpdate.setProductQuantity(3); // Altera a quantidade
+		    cartItemsDao.update(itemToUpdate);
+		    System.out.println("Updated CartItem with ID: " + itemToUpdate.getCartItemId());
+		}
+
+		// Encontrar um CartItem por ID
+		if (!allCartItems.isEmpty()) {
+		    CartItems foundItem = cartItemsDao.findById(allCartItems.get(0).getCartItemId());
+		    System.out.println("Found CartItem: " + foundItem.getCartItemId() + " - " +
+		                       foundItem.getProduct().getProductName());
+		}
+
+		// Deletar um CartItem
+		if (!allCartItems.isEmpty()) {
+		    CartItems itemToDelete = allCartItems.get(0);
+		    cartItemsDao.deleteById(itemToDelete.getCartItemId());
+		    System.out.println("Deleted CartItem with ID: " + itemToDelete.getCartItemId());
+		}
     }
 }

@@ -38,16 +38,27 @@ public class ProductDaoJDBC implements ProductDao {
 	@Override
 	public void insert(Product obj) {
 		String sql = "INSERT INTO Product (productName, productQuantity, productPrice, categoryId) VALUES (?, ?, ?, ?)";
-
-		try (PreparedStatement st = conn.prepareStatement(sql)) {
-			st.setString(1, obj.getProductName());
-			st.setInt(2, obj.getProductQuantity());
-			st.setDouble(3, obj.getProductPrice());
-			st.setInt(4, obj.getCategory().getCategoryId());
-			st.executeUpdate();
-		} catch (SQLException e) {
-			throw new RuntimeException(e.getMessage());
-		}
+	    
+	    try (PreparedStatement st = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+	        st.setString(1, obj.getProductName());
+	        st.setInt(2, obj.getProductQuantity());
+	        st.setDouble(3, obj.getProductPrice());
+	        st.setInt(4, obj.getCategory().getCategoryId());
+	        
+	        int rowsAffected = st.executeUpdate();
+	        
+	        if (rowsAffected > 0) {
+	            try (ResultSet rs = st.getGeneratedKeys()) {
+	                if (rs.next()) {
+	                    obj.setProductId(rs.getInt(1));
+	                }
+	            }
+	        } else {
+	            throw new SQLException("Erro inesperado! Nenhuma linha foi afetada.");
+	        }
+	    } catch (SQLException e) {
+	        throw new RuntimeException(e.getMessage());
+	    }
 	}
 
 	@Override
