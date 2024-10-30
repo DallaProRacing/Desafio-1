@@ -22,7 +22,8 @@ public class CartDaoJDBC implements CartDao {
 	private Cart instantiateCart(ResultSet rs, Customer customer) throws SQLException {
 		Cart cart = new Cart();
 		cart.setCartId(rs.getInt("cartId"));
-		cart.setTotalValue(rs.getDouble("totalValue"));
+		Double totalValue = rs.getObject("totalValue", Double.class);
+		cart.setTotalValue(totalValue != null ? totalValue : 0.0);		    
 		cart.setCustomer(customer);
 		return cart;
 	}

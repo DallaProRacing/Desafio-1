@@ -1,115 +1,59 @@
 package entity;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 public class CartItems implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Integer cartItemId;
-	private Integer cartId;
-	private Integer productId;
-	private Integer productQuantity;
-	private Double productPrice;
+    private Integer cartItemId; // Adicionando o ID do item do carrinho
+    private Cart cart; // O carrinho associado ao item
+    private Product product; // O produto associado ao item
+    private int productQuantity; // Quantidade do produto no carrinho
+    private double productPrice; // Preço do produto
 
-	private Cart cart;
-	private Product product;
+    public CartItems() {
+    }
 
-	public CartItems() {
-	}
+    // Método para obter o ID do item do carrinho
+    public Integer getCartItemId() {
+        return cartItemId;
+    }
 
-	public CartItems(Integer cartItemId, Integer cartId, Integer productId, Integer productQuantity,
-			Double productPrice, Cart cart, Product product) {
-		this.cartItemId = cartItemId;
-		this.cartId = cartId;
-		this.productId = productId;
-		this.productQuantity = productQuantity;
-		this.productPrice = productPrice;
-		this.cart = cart;
-		this.product = product;
-	}
+    // Método para definir o ID do item do carrinho
+    public void setCartItemId(Integer cartItemId) {
+        this.cartItemId = cartItemId;
+    }
 
-	public Integer getCartItemId() {
-		return cartItemId;
-	}
+    public Cart getCart() {
+        return cart;
+    }
 
-	public void setCartItemId(Integer cartItemId) {
-		this.cartItemId = cartItemId;
-	}
+    public void setCart(Cart cart) {
+        this.cart = cart; // Adicionando o método setCart
+    }
 
-	public Integer getCartId() {
-		return cartId;
-	}
+    public Product getProduct() {
+        return product;
+    }
 
-	public void setCartId(Integer cartId) {
-		this.cartId = cartId;
-	}
+    public void setProduct(Product product) {
+        this.product = product;
+        this.productPrice = product.getProductPrice(); // Atualiza o preço automaticamente
+    }
 
-	public Integer getProductId() {
-		return productId;
-	}
+    public int getProductQuantity() {
+        return productQuantity;
+    }
 
-	public void setProductId(Integer productId) {
-		this.productId = productId;
-	}
+    public void setProductQuantity(int productQuantity) {
+        this.productQuantity = productQuantity;
+    }
 
-	public Integer getProductQuantity() {
-		return productQuantity;
-	}
+    public double getProductPrice() {
+        return productPrice;
+    }
 
-	public void setProductQuantity(Integer productQuantity) {
-		this.productQuantity = productQuantity;
-	}
-
-	public Double getProductPrice() {
-		return productPrice;
-	}
-
-	public void setProductPrice(Double productPrice) {
-		this.productPrice = productPrice;
-	}
-
-	public Cart getCart() {
-		return cart;
-	}
-
-	public void setCart(Cart cart) {
-		this.cart = cart;
-	}
-
-	public Product getProduct() {
-		return product;
-	}
-
-	public void setProduct(Product product) {
-		this.product = product;
-	}
-
-	@Override
-	public String toString() {
-		return "CartItems [cartItemId=" + cartItemId + ", cartId=" + cartId + ", productId=" + productId
-				+ ", productQuantity=" + productQuantity + ", productPrice=" + productPrice + ", cart=" + cart
-				+ ", product=" + product + "]";
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(cart, cartId, cartItemId, product, productId, productPrice, productQuantity);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CartItems other = (CartItems) obj;
-		return Objects.equals(cart, other.cart) && Objects.equals(cartId, other.cartId)
-				&& Objects.equals(cartItemId, other.cartItemId) && Objects.equals(product, other.product)
-				&& Objects.equals(productId, other.productId) && Objects.equals(productPrice, other.productPrice)
-				&& Objects.equals(productQuantity, other.productQuantity);
-	}
-
+    public void setProductPrice(double productPrice) {
+        this.productPrice = productPrice;
+    }
 }

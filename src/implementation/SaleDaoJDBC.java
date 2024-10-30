@@ -125,4 +125,22 @@ public class SaleDaoJDBC implements SaleDao {
 		}
 	}
 
+	@Override
+	public void finalizeSale(Cart cart, Customer customer) {
+		String sql = "INSERT INTO Sale (cartId, customerId, productPrice, discount, saleValue) VALUES (?, ?, ?, ?, ?)";
+        double totalSaleValue = cart.getTotalValue(); // Supondo que você tenha o valor total do carrinho
+
+        try (PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setInt(1, cart.getCartId());
+            st.setInt(2, customer.getCustomerId());
+            st.setDouble(3, totalSaleValue); // Você pode querer definir isso de outra forma
+            st.setDouble(4, 0.00); // Se não houver desconto
+            st.setDouble(5, totalSaleValue); // Valor total da venda
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    
+	}
+
 }
