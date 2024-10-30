@@ -7,65 +7,69 @@ import java.util.List;
 
 import Conection.DB;
 import entity.Cart;
-import entity.CartItems;
-import entity.Product;
-import implementation.CartItemsDaoJDBC;
+import entity.Customer;
+import entity.Sale;
+import implementation.SaleDaoJDBC;
 
 public class Program {
-	
-    public static void main(String[] args) {
-        
-    	Connection conn = null;
 
-        conn = DB.getConnection();
-		CartItemsDaoJDBC cartItemsDao = new CartItemsDaoJDBC(conn);
-		
-		// Criar um novo produto e um novo carrinho para o teste
-		Product product = new Product();
-		product.setProductId(1); // Defina o ID do produto que já existe no banco
-		product.setProductName("Test Product");
+	public static void main(String[] args) {
 
-		Cart cart = new Cart();
-		cart.setCartId(1); // Defina o ID do carrinho que já existe no banco
-		cart.setTotalValue(0.0); // Total inicial
+		Connection conn = null;
 
-		// Inserir um novo CartItem
-		CartItems newCartItem = new CartItems();
-		newCartItem.setCart(cart);
-		newCartItem.setProduct(product);
-		newCartItem.setProductQuantity(2);
-		newCartItem.setProductPrice(19.99);
-		cartItemsDao.insert(newCartItem);
-		System.out.println("Inserted new CartItem.");
+		conn = DB.getConnection();
+		try {
+			conn = DB.getConnection();
+			SaleDaoJDBC saleDao = new SaleDaoJDBC(conn);
 
-		// Encontrar todos os CartItems
-		List<CartItems> allCartItems = cartItemsDao.findAll();
-		System.out.println("All CartItems:");
-		for (CartItems item : allCartItems) {
-		    System.out.println(item.getCartItemId() + ": " + item.getProduct().getProductName() +
-		                       " - Quantity: " + item.getProductQuantity());
+			Cart cart = new Cart();
+			cart.setCartId(1); // Defina o ID do carrinho que já existe no banco
+			cart.setTotalValue(0.0); // Total inicial
+
+			Customer customer = new Customer();
+			customer.setCustomerId(1); // Defina o ID do cliente que já existe no banco
+
+			// Inserir uma nova venda
+			Sale newSale = new Sale();
+			newSale.setCart(cart);
+			newSale.setCustomer(customer); // Definindo o cliente corretamente
+			newSale.setProductPrice(49.99);
+			newSale.setDiscount(5.00);
+			newSale.setSaleValue(44.99); // Valor após desconto
+			saleDao.insert(newSale); // Isso deve funcionar agora
+			System.out.println("Inserted new Sale.");
+
+			// Encontrar todas as vendas
+			List<Sale> allSales = saleDao.findAll();
+			System.out.println("All Sales:");
+			for (Sale sale : allSales) {
+				System.out.println(sale.getSaleId() + ": Price: " + sale.getProductPrice() + ", Discount: "
+						+ sale.getDiscount() + ", Total: " + sale.getSaleValue());
+			}
+
+			// Atualizar uma venda
+			if (!allSales.isEmpty()) {
+				Sale saleToUpdate = allSales.get(0);
+				saleToUpdate.setProductPrice(39.99); // Altera o preço
+				saleDao.update(saleToUpdate);
+				System.out.println("Updated Sale with ID: " + saleToUpdate.getSaleId());
+			}
+
+			// Encontrar uma venda por ID
+			if (!allSales.isEmpty()) {
+				Sale foundSale = saleDao.findById(allSales.get(0).getSaleId());
+				System.out.println("Found Sale: " + foundSale.getSaleId() + " - Price: " + foundSale.getProductPrice()
+						+ ", Total: " + foundSale.getSaleValue());
+			}
+
+			// Deletar uma venda
+			if (!allSales.isEmpty()) {
+				Sale saleToDelete = allSales.get(0);
+				saleDao.deleteById(saleToDelete.getSaleId());
+				System.out.println("Deleted Sale with ID: " + saleToDelete.getSaleId());
+			}
+		}finally {
+			DB.closeConnection();
 		}
-
-		// Atualizar um CartItem
-		if (!allCartItems.isEmpty()) {
-		    CartItems itemToUpdate = allCartItems.get(0);
-		    itemToUpdate.setProductQuantity(3); // Altera a quantidade
-		    cartItemsDao.update(itemToUpdate);
-		    System.out.println("Updated CartItem with ID: " + itemToUpdate.getCartItemId());
-		}
-
-		// Encontrar um CartItem por ID
-		if (!allCartItems.isEmpty()) {
-		    CartItems foundItem = cartItemsDao.findById(allCartItems.get(0).getCartItemId());
-		    System.out.println("Found CartItem: " + foundItem.getCartItemId() + " - " +
-		                       foundItem.getProduct().getProductName());
-		}
-
-		// Deletar um CartItem
-		if (!allCartItems.isEmpty()) {
-		    CartItems itemToDelete = allCartItems.get(0);
-		    cartItemsDao.deleteById(itemToDelete.getCartItemId());
-		    System.out.println("Deleted CartItem with ID: " + itemToDelete.getCartItemId());
-		}
-    }
+	}
 }
