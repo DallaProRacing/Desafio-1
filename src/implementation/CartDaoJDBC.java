@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entity.Cart;
+import entity.CartItems;
 import entity.Customer;
 import model.CartDao;
 
@@ -119,6 +120,25 @@ public class CartDaoJDBC implements CartDao {
 		} catch (SQLException e) {
 			throw new RuntimeException(e.getMessage());
 		}
+	}
+
+	@Override
+	public void inserir(CartItems cartItem) {
+		String sql = "INSERT INTO CartItems (cartId, productId, productQuantity, productPrice) VALUES (?, ?, ?, ?)";
+
+	    try (PreparedStatement st = conn.prepareStatement(sql)) {
+	        st.setInt(1, cartItem.getCart().getCartId());
+	        st.setInt(2, cartItem.getProduct().getProductId());
+	        st.setInt(3, cartItem.getProductQuantity());
+	        st.setDouble(4, cartItem.getProductPrice());
+
+	        int rowsAffected = st.executeUpdate();
+	        if (rowsAffected == 0) {
+	            throw new SQLException("Erro ao inserir item no carrinho! Nenhuma linha foi afetada.");
+	        }
+	    } catch (SQLException e) {
+	        throw new RuntimeException(e.getMessage());
+	    }
 	}
 
 }

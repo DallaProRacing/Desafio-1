@@ -11,11 +11,10 @@ import entity.Cart;
 import entity.CartItems;
 import entity.Customer;
 import entity.Product;
-import entity.Sale; // Importar a classe Sale
 import implementation.CartDaoJDBC;
 import implementation.CustomerDaoJBDC;
 import implementation.ProductDaoJDBC;
-import implementation.SaleDaoJDBC; // Importar a classe SaleDaoJDBC
+import implementation.SaleDaoJDBC;
 
 public class Program {
 
@@ -25,11 +24,10 @@ public class Program {
 
         try {
             conn = DB.getConnection();
-            // DAO instances
             CustomerDaoJBDC customerDao = new CustomerDaoJBDC(conn);
             ProductDaoJDBC productDao = new ProductDaoJDBC(conn);
             CartDaoJDBC cartDao = new CartDaoJDBC(conn);
-            SaleDaoJDBC saleDao = new SaleDaoJDBC(conn); // Instanciar SaleDaoJDBC
+            SaleDaoJDBC saleDao = new SaleDaoJDBC(conn);
 
             // 1. Inserir dados do cliente
             Customer customer = new Customer();
@@ -51,59 +49,61 @@ public class Program {
 
             // Formatar a data
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            java.util.Date utilBirthDate = null;
+            java.util.Date utilBirthDate;
 
             try {
-                utilBirthDate = sdf.parse(birthDateStr); // Formata a string da data
+                utilBirthDate = sdf.parse(birthDateStr);
             } catch (ParseException e) {
                 System.out.println("Data inválida. O formato correto é dd/MM/yyyy.");
-                return; // Encerra o programa se a data for inválida
+                return;
             }
 
-            // Converte para java.sql.Date
             Date sqlBirthDate = new Date(utilBirthDate.getTime());
-
-            // Cria o cliente e salva no banco
-            customer.setBirthDate(sqlBirthDate); // Define a data formatada como java.sql.Date
+            customer.setBirthDate(sqlBirthDate);
             customerDao.insert(customer);
 
-            // 2. Criar um novo carrinho para o cliente
+            // 2. Criar e inserir o carrinho temporário
             Cart cart = new Cart();
             cart.setCustomer(customer);
-            cartDao.insert(cart); // Salva o carrinho no banco
+            cart.setTotalValue(0.0);
+            cartDao.insert(cart); // Insere o carrinho e define o cartId
 
-            // Loop para adicionar produtos ao carrinho
+            double totalValue = 0.00;
+
             boolean shopping = true;
             while (shopping) {
                 System.out.print("Enter the product ID you want to add to the cart: ");
                 int productId = Integer.parseInt(scanner.nextLine());
 
-                Product product = productDao.findById(productId); // Busca o produto pelo ID
+                Product product = productDao.findById(productId);
                 if (product != null) {
                     System.out.print("How many items of product " + product.getProductName() + " do you want to add? ");
                     int quantity = Integer.parseInt(scanner.nextLine());
 
-                    // Verifica se a quantidade desejada está disponível
                     if (quantity > product.getProductQuantity()) {
                         System.out.println("Not enough stock available. Available quantity: " + product.getProductQuantity());
                         continue;
                     }
 
-                    // Adiciona o item ao carrinho
+                    // Adiciona o item na tabela CartItems
                     CartItems cartItem = new CartItems();
                     cartItem.setCart(cart);
                     cartItem.setProduct(product);
                     cartItem.setProductQuantity(quantity);
                     cartItem.setProductPrice(product.getProductPrice());
+                    
+                    double itemTotal = quantity * product.getProductPrice();
+                    totalValue += itemTotal; // Atualiza o valor total do carrinho
 
-                    // Salvar o item no carrinho (implemente este método no CartDaoJDBC)
-                    cartDao.insert(cart); // Método que você precisa implementar
+                    // Inserir o item na tabela CartItems
+                    cartDao.inserir(cartItem);
 
-                    // Atualiza a quantidade do produto em estoque
+                    // Atualiza o estoque do produto
                     product.setProductQuantity(product.getProductQuantity() - quantity);
-                    productDao.update(product); // Atualiza o estoque
+                    productDao.update(product);
 
                     System.out.println("Item added to the cart!");
+                    System.out.printf("Current total cart value: $%.2f%n", totalValue);
                 } else {
                     System.out.println("Product not found.");
                 }
@@ -115,9 +115,11 @@ public class Program {
                 }
             }
 
-            // 3. Finalizar a compra e inserir na tabela Sale
-            saleDao.finalizeSale(cart, customer); // Chamando o método finalizeSale
+            // 3. Atualizar o valor total do carrinho e finalizar a compra
+            cart.setTotalValue(totalValue);
+            cartDao.update(cart); // Atualiza o carrinho com o valor total final
 
+            saleDao.finalizeSale(cart, customer);
             System.out.println("Purchase completed successfully!");
 
         } finally {

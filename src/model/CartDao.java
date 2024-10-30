@@ -3,6 +3,7 @@ package model;
 import java.util.List;
 
 import entity.Cart;
+import entity.CartItems;
 
 public interface CartDao {
 	
@@ -11,4 +12,5 @@ public interface CartDao {
     void deleteById(Integer id);
     Cart findById(Integer id);
     List<Cart> findAll();
+    void inserir(CartItems cartItem);
 }
