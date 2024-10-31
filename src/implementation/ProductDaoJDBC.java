@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,27 +38,39 @@ public class ProductDaoJDBC implements ProductDao {
 
 	@Override
 	public void insert(Product obj) {
-		String sql = "INSERT INTO Product (productName, productQuantity, productPrice, categoryId) VALUES (?, ?, ?, ?)";
-	    
-	    try (PreparedStatement st = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+		PreparedStatement st = null;
+	    try {
+	        // Insere o produto na tabela Product
+	        st = conn.prepareStatement(
+	            "INSERT INTO Product (productName, productPrice, categoryId, productQuantity) VALUES (?, ?, ?, ?)",
+	            Statement.RETURN_GENERATED_KEYS);
+
 	        st.setString(1, obj.getProductName());
-	        st.setInt(2, obj.getProductQuantity());
-	        st.setDouble(3, obj.getProductPrice());
-	        st.setInt(4, obj.getCategory().getCategoryId());
-	        
+	        st.setDouble(2, obj.getProductPrice());
+	        st.setInt(3, obj.getCategoryId());
+	        st.setInt(4, obj.getProductQuantity()); // Define a quantidade do produto
 	        int rowsAffected = st.executeUpdate();
-	        
+
 	        if (rowsAffected > 0) {
 	            try (ResultSet rs = st.getGeneratedKeys()) {
 	                if (rs.next()) {
-	                    obj.setProductId(rs.getInt(1));
+	                    int productId = rs.getInt(1);
+	                    obj.setProductId(productId);  // Define o productId no objeto
 	                }
 	            }
 	        } else {
-	            throw new SQLException("Erro inesperado! Nenhuma linha foi afetada.");
+	            throw new SQLException("Unexpected error! No rows affected.");
 	        }
 	    } catch (SQLException e) {
-	        throw new RuntimeException(e.getMessage());
+	        e.printStackTrace();
+	    } finally {
+	        if (st != null) {
+	            try {
+	                st.close();
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	            }
+	        }
 	    }
 	}
 

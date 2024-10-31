@@ -20,13 +20,28 @@ public class CategoryDaoJDBC implements CategoryDao {
 
 	@Override
 	public void insert(Category obj) {
-		String sql = "INSERT INTO Category (categoryName) VALUES (?)";
-		try (PreparedStatement st = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-			st.setString(1, obj.getCategoryName());
-			st.executeUpdate();
-		} catch (SQLException e) {
-			throw new RuntimeException(e.getMessage());
-		}
+        PreparedStatement st = null;
+        try {
+            st = conn.prepareStatement(
+                "INSERT INTO Category (categoryName) VALUES (?)",
+                Statement.RETURN_GENERATED_KEYS);
+
+            st.setString(1, obj.getCategoryName());
+            int rowsAffected = st.executeUpdate();
+
+            if (rowsAffected > 0) {
+                try (ResultSet rs = st.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int id = rs.getInt(1);
+                        obj.setCategoryId(id);  // Define o categoryId no objeto
+                    }
+                }
+            } else {
+                throw new SQLException("Unexpected error! No rows affected.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } 
 	}
 
 	@Override
@@ -85,6 +100,21 @@ public class CategoryDaoJDBC implements CategoryDao {
 		} catch (SQLException e) {
 			throw new RuntimeException(e.getMessage());
 		}
+	}
+
+	@Override
+	public int findCategoryIdByName(String categoryName) {
+		String sql = "SELECT categoryId FROM Category WHERE categoryName = ?";
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, categoryName);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt("categoryId");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return -1;
 	}
 
 }
