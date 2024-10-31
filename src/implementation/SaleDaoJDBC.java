@@ -4,10 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import entity.Cart;
+import entity.CartItems;
 import entity.Customer;
 import entity.Sale;
 import model.SaleDao;
@@ -24,7 +26,6 @@ public class SaleDaoJDBC implements SaleDao {
 		sale.setSaleId(rs.getInt("saleId"));
 		sale.setCart(cart);
 		sale.setProductPrice(rs.getDouble("productPrice"));
-		sale.setDiscount(rs.getDouble("discount"));
 		sale.setSaleValue(rs.getDouble("saleValue"));
 		return sale;
 	}
@@ -44,14 +45,13 @@ public class SaleDaoJDBC implements SaleDao {
 
 	@Override
 	public void insert(Sale obj) {
-		String sql = "INSERT INTO Sale (cartId, customerId, productPrice, discount, saleValue) VALUES (?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO Sale (cartId, customerId, productPrice, saleValue) VALUES (?, ?, ?, ?)";
 
 		try (PreparedStatement st = conn.prepareStatement(sql)) {
 			st.setInt(1, obj.getCart().getCartId());
 			st.setInt(2, obj.getCustomer().getCustomerId());
 			st.setDouble(3, obj.getProductPrice());
-			st.setDouble(4, obj.getDiscount());
-			st.setDouble(5, obj.getSaleValue());
+			st.setDouble(4, obj.getSaleValue());
 			st.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e.getMessage());
@@ -60,15 +60,14 @@ public class SaleDaoJDBC implements SaleDao {
 
 	@Override
 	public void update(Sale obj) {
-		String sql = "UPDATE Sale SET cartId = ?, customerId = ?, productPrice = ?, discount = ?, saleValue = ? WHERE saleId = ?";
+		String sql = "UPDATE Sale SET cartId = ?, customerId = ?, productPrice = ?, saleValue = ? WHERE saleId = ?";
 
 		try (PreparedStatement st = conn.prepareStatement(sql)) {
 			st.setInt(1, obj.getCart().getCartId());
-			st.setInt(2, obj.getCustomer().getCustomerId()); // Isso deve ser seguro agora
+			st.setInt(2, obj.getCustomer().getCustomerId());
 			st.setDouble(3, obj.getProductPrice());
-			st.setDouble(4, obj.getDiscount());
-			st.setDouble(5, obj.getSaleValue());
-			st.setInt(6, obj.getSaleId());
+			st.setDouble(4, obj.getSaleValue());
+			st.setInt(5, obj.getSaleId());
 			st.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e.getMessage());
@@ -89,8 +88,8 @@ public class SaleDaoJDBC implements SaleDao {
 
 	@Override
 	public Sale findById(Integer id) {
-		String sql = "SELECT s.saleId, s.productPrice, s.discount, s.saleValue, " + "c.cartId, c.totalValue "
-				+ "FROM Sale s " + "LEFT JOIN Cart c ON s.cartId = c.cartId " + "WHERE s.saleId = ?";
+		String sql = "SELECT s.saleId, s.productPrice, s.saleValue, " + "c.cartId, c.totalValue " + "FROM Sale s "
+				+ "LEFT JOIN Cart c ON s.cartId = c.cartId " + "WHERE s.saleId = ?";
 
 		try (PreparedStatement st = conn.prepareStatement(sql)) {
 			st.setInt(1, id);
@@ -108,8 +107,8 @@ public class SaleDaoJDBC implements SaleDao {
 
 	@Override
 	public List<Sale> findAll() {
-		String sql = "SELECT s.saleId, s.productPrice, s.discount, s.saleValue, " + "c.cartId, c.totalValue "
-				+ "FROM Sale s " + "LEFT JOIN Cart c ON s.cartId = c.cartId";
+		String sql = "SELECT s.saleId, s.productPrice, s.saleValue, " + "c.cartId, c.totalValue " + "FROM Sale s "
+				+ "LEFT JOIN Cart c ON s.cartId = c.cartId";
 
 		try (PreparedStatement st = conn.prepareStatement(sql); ResultSet rs = st.executeQuery()) {
 
@@ -127,20 +126,31 @@ public class SaleDaoJDBC implements SaleDao {
 
 	@Override
 	public void finalizeSale(Cart cart, Customer customer) {
-		String sql = "INSERT INTO Sale (cartId, customerId, productPrice, discount, saleValue) VALUES (?, ?, ?, ?, ?)";
-        double totalSaleValue = cart.getTotalValue(); // Supondo que você tenha o valor total do carrinho
+		String sql = "INSERT INTO Sale (cartId, customerId, productPrice, saleValue) VALUES (?, ?, ?, ?)";
 
-        try (PreparedStatement st = conn.prepareStatement(sql)) {
-            st.setInt(1, cart.getCartId());
-            st.setInt(2, customer.getCustomerId());
-            st.setDouble(3, totalSaleValue); // Você pode querer definir isso de outra forma
-            st.setDouble(4, 0.00); // Se não houver desconto
-            st.setDouble(5, totalSaleValue); // Valor total da venda
-            st.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    
+		try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+			statement.setInt(1, cart.getCartId());
+			statement.setInt(2, customer.getCustomerId());
+
+			// Para o preço total, você pode somar todos os preços dos produtos do carrinho
+			double totalSaleValue = cart.getTotalValue();
+			statement.setDouble(3, totalSaleValue); // Preço total dos produtos (você pode ajustar essa lógica se
+													// necessário)
+			statement.setDouble(4, totalSaleValue); // Valor total da venda
+
+			int rowsAffected = statement.executeUpdate();
+
+			if (rowsAffected > 0) {
+				try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						int saleId = generatedKeys.getInt(1);
+						System.out.println("Sale completed successfully with ID: " + saleId);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 	}
-
 }

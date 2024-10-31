@@ -9,8 +9,7 @@ public class Sale implements Serializable {
 	private Integer saleId;
 	private Integer cartId;
 	private Integer customerId;
-	private Double productPrice;
-	private Double discount;
+	private Double productPrice;	
 	private Double saleValue;
 	private Customer customer;
 	private Cart cart;
@@ -18,14 +17,13 @@ public class Sale implements Serializable {
 	public Sale() {
 	}
 
-	public Sale(Integer saleId, Integer cartId, Integer customerId, Double productPrice, Double discount,
-			Double saleValue, Customer customer, Cart cart) {
-
+	public Sale(Integer saleId, Integer cartId, Integer customerId, Double productPrice, Double saleValue,
+			Customer customer, Cart cart) {
+		
 		this.saleId = saleId;
 		this.cartId = cartId;
 		this.customerId = customerId;
 		this.productPrice = productPrice;
-		this.discount = discount;
 		this.saleValue = saleValue;
 		this.customer = customer;
 		this.cart = cart;
@@ -63,14 +61,6 @@ public class Sale implements Serializable {
 		this.productPrice = productPrice;
 	}
 
-	public Double getDiscount() {
-		return discount;
-	}
-
-	public void setDiscount(Double discount) {
-		this.discount = discount;
-	}
-
 	public Double getSaleValue() {
 		return saleValue;
 	}
@@ -98,13 +88,12 @@ public class Sale implements Serializable {
 	@Override
 	public String toString() {
 		return "Sale [saleId=" + saleId + ", cartId=" + cartId + ", customerId=" + customerId + ", productPrice="
-				+ productPrice + ", discount=" + discount + ", saleValue=" + saleValue + ", customer=" + customer
-				+ ", cart=" + cart + "]";
+				+ productPrice + ", saleValue=" + saleValue + ", customer=" + customer + ", cart=" + cart + "]";
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(cart, cartId, customer, customerId, discount, productPrice, saleId, saleValue);
+		return Objects.hash(cart, cartId, customer, customerId, productPrice, saleId, saleValue);
 	}
 
 	@Override
@@ -118,8 +107,10 @@ public class Sale implements Serializable {
 		Sale other = (Sale) obj;
 		return Objects.equals(cart, other.cart) && Objects.equals(cartId, other.cartId)
 				&& Objects.equals(customer, other.customer) && Objects.equals(customerId, other.customerId)
-				&& Objects.equals(discount, other.discount) && Objects.equals(productPrice, other.productPrice)
-				&& Objects.equals(saleId, other.saleId) && Objects.equals(saleValue, other.saleValue);
+				&& Objects.equals(productPrice, other.productPrice) && Objects.equals(saleId, other.saleId)
+				&& Objects.equals(saleValue, other.saleValue);
 	}
+
+	
 
 }
