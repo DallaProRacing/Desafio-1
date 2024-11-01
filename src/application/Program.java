@@ -52,20 +52,45 @@ public class Program {
 					System.out.print("Do you want to update an existing product or add a new one? (Update/Add): ");
 					String action = scanner.nextLine();
 
-					if (action.equalsIgnoreCase("Add")) {
+					if (action.equalsIgnoreCase("Update")) {
+						// Atualizar quantidade de um produto existente
+						try {
+							System.out.print("Enter the product ID you want to update: ");
+							int productId = Integer.parseInt(scanner.nextLine());
+							Product product = productDao.findById(productId);
+
+							if (product == null) {
+								System.out.println("Product not found. Please verify the ID and try again.");
+							} else {
+								System.out.print("Enter the new quantity for the product: ");
+								int newQuantity = Integer.parseInt(scanner.nextLine());
+
+								if (newQuantity < 0) {
+									System.out.println("Invalid quantity. Quantity cannot be negative.");
+								} else {
+									product.setProductQuantity(newQuantity);
+									productDao.update(product);
+									System.out.println("Product quantity updated successfully!");
+								}
+							}
+						} catch (NumberFormatException e) {
+							System.out.println(
+									"Invalid input. Please enter a valid integer for product ID and quantity.");
+						} catch (Exception e) {
+							System.out.println("An error occurred while updating the product: " + e.getMessage());
+						}
+					} else if (action.equalsIgnoreCase("Add")) {
 						// Adicionar novo produto
 						System.out.print("Do you want to add a new category? (y/n): ");
 						String addCategoryResponse = scanner.nextLine();
 
 						int categoryId = 0;
 						if (addCategoryResponse.equalsIgnoreCase("y")) {
-							// Adicionar nova categoria
 							Category category = new Category();
 							System.out.print("Enter the category name: ");
 							category.setCategoryName(scanner.nextLine());
-							categoryDao.insert(category); // Insere a nova categoria no banco
+							categoryDao.insert(category);
 
-							// Obtém o categoryId da nova categoria pelo nome
 							categoryId = category.getCategoryId();
 							System.out.println("Category added successfully!");
 						} else {
@@ -73,7 +98,7 @@ public class Program {
 								System.out.print("Enter the category ID for this product: ");
 								try {
 									categoryId = Integer.parseInt(scanner.nextLine());
-									break; // Sai do loop se a entrada for válida
+									break;
 								} catch (NumberFormatException e) {
 									System.out.println("Invalid input. Please enter a valid category ID (integer).");
 								}
@@ -81,7 +106,7 @@ public class Program {
 						}
 
 						Product product = new Product();
-						product.setCategoryId(categoryId); // Definir categoryId para o produto
+						product.setCategoryId(categoryId);
 
 						System.out.print("Enter the product name: ");
 						product.setProductName(scanner.nextLine());
@@ -92,7 +117,7 @@ public class Program {
 							try {
 								productPrice = Double.parseDouble(scanner.nextLine());
 								product.setProductPrice(productPrice);
-								break; // Sai do loop se a entrada for válida
+								break;
 							} catch (NumberFormatException e) {
 								System.out.println("Invalid input. Please enter a valid price (number).");
 							}
@@ -103,14 +128,13 @@ public class Program {
 							System.out.print("Enter the product quantity: ");
 							try {
 								quantity = Integer.parseInt(scanner.nextLine());
-								product.setProductQuantity(quantity); // Definir a quantidade no produto
-								break; // Sai do loop se a entrada for válida
+								product.setProductQuantity(quantity);
+								break;
 							} catch (NumberFormatException e) {
 								System.out.println("Invalid input. Please enter a valid quantity (integer).");
 							}
 						}
 
-						// Insere o produto no banco
 						productDao.insert(product);
 						System.out.println("Product added successfully!");
 					}
@@ -139,7 +163,7 @@ public class Program {
 								System.out.println("Customer not found. Please register.");
 								return;
 							}
-							break; // Sai do loop se a entrada for válida
+							break;
 						} catch (NumberFormatException e) {
 							System.out.println("Invalid input. Please enter a valid customer ID (integer).");
 						}
@@ -163,11 +187,9 @@ public class Program {
 						String birthDateStr = scanner.nextLine();
 
 						SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-						java.util.Date utilBirthDate;
 						try {
-							utilBirthDate = sdf.parse(birthDateStr);
-							sqlBirthDate = new Date(utilBirthDate.getTime());
-							break; // Sai do loop se a entrada for válida
+							sqlBirthDate = new Date(sdf.parse(birthDateStr).getTime());
+							break;
 						} catch (ParseException e) {
 							System.out.println("Invalid date format. Use dd/MM/yyyy.");
 						}
@@ -183,7 +205,7 @@ public class Program {
 				cartDao.insert(cart);
 
 				double totalValue = 0.00;
-				List<CartItems> purchasedItems = new ArrayList<>(); // Lista para armazenar itens comprados
+				List<CartItems> purchasedItems = new ArrayList<>();
 				boolean shopping = true;
 				while (shopping) {
 					int productId = 0;
@@ -213,18 +235,18 @@ public class Program {
 								totalValue += itemTotal;
 
 								cartDao.inserir(cartItem);
-								purchasedItems.add(cartItem); // Adiciona o item à lista de itens comprados
+								purchasedItems.add(cartItem);
 
 								int newProductQuantity = product.getProductQuantity() - quantity;
-								product.setProductQuantity(newProductQuantity); // Atualizar o objeto Product localmente
-								productDao.update(product); // Persistir a atualização na tabela Product
+								product.setProductQuantity(newProductQuantity);
+								productDao.update(product);
 
 								System.out.println("Item added to the cart!");
 								System.out.printf("Current total cart value: $%.2f%n", totalValue);
 							} else {
 								System.out.println("Product not found.");
 							}
-							break; // Sai do loop se a entrada for válida
+							break;
 						} catch (NumberFormatException e) {
 							System.out.println("Invalid input. Please enter a valid product ID (integer).");
 						}
@@ -241,6 +263,7 @@ public class Program {
 				cart.setTotalValue(totalValue);
 				cartDao.update(cart);
 				saleDao.finalizeSale(cart, customer);
+
 				// Exibir resumo da compra
 				System.out.println("Purchase completed successfully!");
 				System.out.println("Customer: " + customer.getCustomerName());
@@ -249,7 +272,7 @@ public class Program {
 					System.out.printf("- %s, Quantity: %d, Price: $%.2f%n", item.getProduct().getProductName(),
 							item.getProductQuantity(), item.getProductPrice());
 				}
-				System.out.printf("Total amount: $%.2f%n", cart.getTotalValue());
+				System.out.printf("Total value: $%.2f%n", totalValue);
 			}
 
 		} catch (Exception e) {
