@@ -207,6 +207,15 @@ public class Program {
 				double totalValue = 0.00;
 				List<CartItems> purchasedItems = new ArrayList<>();
 				boolean shopping = true;
+				
+				System.out.println("Available products:");
+				List<Product> products = productDao.findAll();
+				for (Product product : products) {
+				    System.out.printf("ID: %d, Name: %s, Price: $%.2f, Quantity: %d, Category: %s%n",
+				            product.getProductId(), product.getProductName(), product.getProductPrice(),
+				            product.getProductQuantity(), product.getCategory().getCategoryName());
+				}
+				
 				while (shopping) {
 					int productId = 0;
 					while (true) {

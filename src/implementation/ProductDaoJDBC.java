@@ -124,21 +124,21 @@ public class ProductDaoJDBC implements ProductDao {
 
 	@Override
 	public List<Product> findAll() {
-		String sql = "SELECT p.productId, p.productName, p.productQuantity, p.productPrice, "
-				+ "c.categoryId, c.categoryName " + "FROM Product p "
-				+ "LEFT JOIN Category c ON p.categoryId = c.categoryId";
+		List<Product> products = new ArrayList<>();
+	    String sql = "SELECT p.productId, p.productName, p.productQuantity, p.productPrice, c.categoryId, c.categoryName " +
+	                 "FROM Product p JOIN Category c ON p.categoryId = c.categoryId";
 
-		try (PreparedStatement st = conn.prepareStatement(sql); ResultSet rs = st.executeQuery()) {
+	    try (PreparedStatement st = conn.prepareStatement(sql);
+	         ResultSet rs = st.executeQuery()) {
 
-			List<Product> list = new ArrayList<>();
-			while (rs.next()) {
-				Category category = instantiateCategory(rs);
-				Product product = instantiateProduct(rs, category);
-				list.add(product);
-			}
-			return list;
-		} catch (SQLException e) {
-			throw new RuntimeException(e.getMessage());
-		}
+	        while (rs.next()) {
+	            Category category = instantiateCategory(rs);
+	            Product product = instantiateProduct(rs, category);
+	            products.add(product);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return products;
 	}
 }
